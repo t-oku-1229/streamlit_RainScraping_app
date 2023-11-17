@@ -157,7 +157,7 @@ st.caption('試作品です')
 st.text('水文水質データベースの雨量取得を行うためのWebアプリケーションを作成してみました。')
 st.text('※観測所記号はこちらのようなコードのことです↓↓')
 
-image = './ID_image.png'
+image = './ID_image.PNG'
 st.image(image, width=600)
 
 with st.form(key='input'):    
