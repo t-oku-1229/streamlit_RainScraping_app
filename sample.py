@@ -1,172 +1,139 @@
 from bs4 import BeautifulSoup
-import urllib.request as req
 import requests
-import time
-from selenium import webdriver
 from datetime import datetime, timedelta
 import pandas as pd
 import streamlit as st
+import os
 
-def geturl(url):
-    try:
-        res = requests.get(str(url), timeout=5)
-    except Timeout:
-        error_code = 1
-        getres = -9999
-    else:
-        error_code = 0
-        getres = res
-    return getres, error_code
-
-def check(url):
-    # print('Start connect!!')
-    res, error_code = geturl(str(url))
-    i = 0
-    while True:
-        if error_code == 0:
-            # print('Success connect!!')
-            break
-        else:
-            time.sleep(2)
-            i += 1
-            print('Retry connect!! : ' + str(i) + 'time...' )
-            res, error_code = geturl(str(url))
-
-    return res
-
-def print_datetime_range(year):
-    start_datetime = datetime(year, 1, 1, 1, 0)
-    end_datetime = datetime(year, 12, 31, 23, 59)
-
-    current_datetime = start_datetime
-    while current_datetime <= end_datetime:
-        print(current_datetime.strftime('%Y-%m-%d %H:%M'))
-        current_datetime += timedelta(hours=1)
+class RainDataExtractor:
 
 
-def create_csv(point_name, ID, start_year, end_year):
-    # point_name = point_name_entry.get()
-    # ID = id_entry.get()
-    # start_year = int(start_year_entry.get())
-    # end_year = int(end_year_entry.get())
+    def __init__(self, ID, start_year, end_year):
+        self.ID = int(ID)
+        self.start_year = int(start_year)
+        self.end_year = int(end_year)
 
-    point_name = str(point_name)
-    ID = int(ID)
-    start_year = int(start_year)
-    end_year = int(end_year)
 
-    for year in range(start_year, end_year + 1):
+    def singleyear(self):
         date_arr, hourly_rain = [], []
-        filename = f'{point_name}_{year}.csv'
-        # f = open(filename, 'w', encoding='shift_jis')
 
-        start_datetime = datetime(year, 1, 1, 1, 0)
-        end_datetime = datetime(year, 12, 31, 23, 59)
-        current_datetime = start_datetime
+        for year in range(self.start_year, self.end_year + 1):
+            start_datetime = datetime(year, 1, 1, 1, 0)
+            end_datetime = datetime(year, 12, 31, 23, 59)
+            current_datetime = start_datetime
 
-        for imonth in range(1, 13):
-            if imonth < 10:
-                month = '0' + str(imonth)
-            else:
-                month = str(imonth)
+            for imonth in range(1, 13):
+                if imonth < 10:
+                    month = '0' + str(imonth)
+                else:
+                    month = str(imonth)
 
-            url = f'http://www1.river.go.jp/cgi-bin/DspRainData.exe?KIND=2&ID={ID}&BGNDATE={year}{month}01&ENDDATE=20231231&KAWABOU=NO'
+                url = f'http://www1.river.go.jp/cgi-bin/DspRainData.exe?KIND=2&ID={self.ID}&BGNDATE={year}{month}01&ENDDATE=20231231&KAWABOU=NO'
 
-            res = check(url)
-            soup = BeautifulSoup(res.content, "html.parser", from_encoding='shift_jis')
-            _discharge = soup.find_all('td')
+                res = requests.get(url)
 
-            for i in range(9, len(_discharge) - 1):
-                discharge = _discharge[i].get_text()
-                hourly_rain.append(discharge)
-                date_arr.append(current_datetime.strftime('%Y-%m-%d %H:%M'))
-                # print(current_datetime.strftime('%Y-%m-%d %H:%M'))
-                current_datetime += timedelta(hours=1)
+                soup = BeautifulSoup(res.content, "html.parser", from_encoding='shift_jis')
+                _discharge = soup.find_all('td')
 
-        # for i in range(len(hourly_rain)):
-        #     f.write(str(date_arr[i]))
-        #     f.write(',')
-        #     f.write(str(hourly_rain[i]))
-        #     f.write('\n')
+                for i in range(9, len(_discharge) - 1):
+                    discharge = _discharge[i].get_text()
+                    hourly_rain.append(discharge)
+                    date_arr.append(current_datetime.strftime('%Y-%m-%d %H:%M'))
+                    current_datetime += timedelta(hours=1)
 
         # データフレームの作成
         data = {"日付": date_arr, "雨量": hourly_rain}
         df = pd.DataFrame(data)
 
-        # print(f'{year}_end')
-        # f.close()
-        time.sleep(2)
-
-    # try:
-    #     # 既存の create_csv の実装をここに配置
-
-    #     # 以下は create_csv の実行が成功したと仮定したメッセージ
-    #     messagebox.showinfo("Success", "Data scraping completed successfully!")
-
-    # except Exception as e:
-    #     # エラーが発生した場合のメッセージ
-    #     messagebox.showerror("Error", f"An error occurred: {str(e)}")
+        return df
 
 
-
-def create_df(ID, start_year):
-
-    ID = int(ID)
-    start_year = int(start_year)
-
-    for year in range(start_year, start_year + 1):
+    def multiyear(self, outputpath):
         date_arr, hourly_rain = [], []
 
-        start_datetime = datetime(year, 1, 1, 1, 0)
-        end_datetime = datetime(year, 12, 31, 23, 59)
-        current_datetime = start_datetime
+        for year in range(self.start_year, self.end_year + 1):
+            start_datetime = datetime(year, 1, 1, 1, 0)
+            end_datetime = datetime(year, 12, 31, 23, 59)
+            current_datetime = start_datetime
 
-        for imonth in range(1, 13):
-            if imonth < 10:
-                month = '0' + str(imonth)
-            else:
-                month = str(imonth)
+            # filename = f'{point_name}_{year}.csv'
+            # f = open(filename, 'w', encoding='shift_jis')
 
-            url = f'http://www1.river.go.jp/cgi-bin/DspRainData.exe?KIND=2&ID={ID}&BGNDATE={year}{month}01&ENDDATE=20231231&KAWABOU=NO'
+            for imonth in range(1, 13):
+                if imonth < 10:
+                    month = '0' + str(imonth)
+                else:
+                    month = str(imonth)
 
-            res = check(url)
-            soup = BeautifulSoup(res.content, "html.parser", from_encoding='shift_jis')
-            _discharge = soup.find_all('td')
+                url = f'http://www1.river.go.jp/cgi-bin/DspRainData.exe?KIND=2&ID={self.ID}&BGNDATE={year}{month}01&ENDDATE=20231231&KAWABOU=NO'
 
-            for i in range(9, len(_discharge) - 1):
-                discharge = _discharge[i].get_text()
-                hourly_rain.append(discharge)
-                date_arr.append(current_datetime.strftime('%Y-%m-%d %H:%M'))
-                # print(current_datetime.strftime('%Y-%m-%d %H:%M'))
-                current_datetime += timedelta(hours=1)
+                res = requests.get(url)
 
-        # データフレームの作成
-        data = {"日付": date_arr, "雨量": hourly_rain}
-        df = pd.DataFrame(data)
+                soup = BeautifulSoup(res.content, "html.parser", from_encoding='shift_jis')
+                _discharge = soup.find_all('td')
 
-        # print(f'{year}_end')
-        # f.close()
+                for i in range(9, len(_discharge) - 1):
+                    discharge = _discharge[i].get_text()
+                    hourly_rain.append(discharge)
+                    date_arr.append(current_datetime.strftime('%Y-%m-%d %H:%M'))
+                    current_datetime += timedelta(hours=1)
 
-    return df
+            # データフレームの作成
+            data = {"日付": date_arr, "雨量": hourly_rain}
+            df = pd.DataFrame(data)
+            df.to_csv(outputpath+'Rain'+str(year)+'.csv', index=False, encoding='shift_jis')
+
+        return df
 
 
-# 109021289922040
+def main():
+    # タイトルと説明
+    st.title('水文水質DB 雨量取得Webアプリ')
+    st.text('水文水質データベースの雨量取得を行うためのWebアプリケーションを作成してみました。\n雨量情報を取得する機会があればぜひお使いください。')
 
-st.title('水文水質データベース 雨量取得ツール')
-st.caption('試作品です')
-st.text('水文水質データベースの雨量取得を行うためのWebアプリケーションを作成してみました。')
-st.text('※観測所記号はこちらのようなコードのことです↓↓')
+    st.markdown("""
+    ### 本アプリについて
+    水文水質DBの雨量値を年単位で取得できるWebアプリです。
 
-image = './ID_image.PNG'
-st.image(image, width=600)
+    ### 取得手順
+    1. 単年で取得するか、複数年を一括で取得するか選択してください。複数年の場合はcsvファイルのダウンロードになります。
+    2. 取得したい"観測所記号"を調べます。[例）厳木ダム](http://www1.river.go.jp/cgi-bin/SiteInfo.exe?ID=109021289922040)
+    3. 取得したい年数を入力します。予め取得できる年数を確認しておくことをお勧めします。
+    """)
 
-with st.form(key='input'):    
+    # ラジオボタンで単年と複数年を選択
+    data_type = st.radio("データの種類を選択", ["単年", "複数年"])
 
-    ID = st.text_input('観測所のコード：例）厳木ダム 109021289922040')
-    start_year = st.text_input('取得年')
+    if data_type == "単年":
+        with st.form(key='input_single_year'):
+            ID_single = st.text_input('観測所のコード：例）厳木ダム 109021289922040')
+            start_year_single = st.text_input('取得年')
+            end_year_single = start_year_single
+            submit_btn_single = st.form_submit_button('結果表示')
+            if submit_btn_single:
+                extractor_single = RainDataExtractor(ID_single, start_year_single, end_year_single)
+                df_single = extractor_single.singleyear()
+                st.dataframe(df_single)
 
-    submit_btn = st.form_submit_button('取得')
-    if submit_btn:
-        df = create_df(ID, start_year)
-        st.dataframe(df)
+    elif data_type == "複数年":
 
+        with st.form(key='input_single_year'):
+            ID_multi = st.text_input('観測所のコード：例）厳木ダム 109021289922040')
+            start_year_multi = st.text_input('開始年')
+            end_year_multi = st.text_input('終了年')
+            __outputpath = st.text_input('ファイル保存先')
+            _outputpath = os.path.join(__outputpath, 'Results')
+
+            # フォルダが存在しない場合は作成
+            if not os.path.exists(_outputpath):
+                os.makedirs(_outputpath)
+            outputpath = _outputpath+"\\"
+
+            submit_btn_multi = st.form_submit_button('CSV保存')
+            if submit_btn_multi:
+                extractor_multi = RainDataExtractor(ID_multi, start_year_multi, end_year_multi)
+                df_multi = extractor_multi.multiyear(outputpath)
+
+
+if __name__ == '__main__':
+    main()
