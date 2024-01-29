@@ -200,15 +200,15 @@ def main():
     """)
 
     # プルダウンでデータの種類を選択
-    data_type = st.selectbox("データの種類を選択", ["雨量", "流量", "水位"])
+    data_type = st.selectbox("▼データの種類を選択", ["雨量", "流量", "水位"])
 
     # ラジオボタンで単年と複数年を選択
-    year_type = st.radio("データの種類を選択", ["単年", "複数年"])
+    year_type = st.radio("▼単年か複数年か選択", ["単年", "複数年"])
 
 
     if data_type == "雨量" and year_type == "単年":
-        ID_single = st.text_input('観測所のコード：例）厳木ダム 109021289922040')
-        start_year_single = st.text_input('取得年')
+        ID_single = st.text_input('▼観測所のコード：例）厳木ダム 109021289922040')
+        start_year_single = st.text_input('▼取得年')
         end_year_single = start_year_single
         submit_btn_single = st.button('結果表示')
         if submit_btn_single:
@@ -219,10 +219,10 @@ def main():
 
 
     elif data_type == "雨量" and year_type == "複数年":
-        ID_multi = st.text_input('観測所のコード：例）厳木ダム 109021289922040')
+        ID_multi = st.text_input('▼観測所のコード：例）厳木ダム 109021289922040')
         start_year_multi = st.text_input('開始年')
         end_year_multi = st.text_input('終了年')
-        submit_btn_multi = st.button('取得開始')
+        submit_btn_multi = st.button('▼取得開始')
         if submit_btn_multi:
             extractor_multi = RainDataExtractor(ID_multi, start_year_multi, end_year_multi)
             text_placeholder = st.text('csvデータを作成中です...')
@@ -239,8 +239,8 @@ def main():
 
 
     elif data_type == "水位" and year_type == "単年":
-        ID_single = st.text_input('観測所のコード：例）荒瀬 309061289901060')
-        start_year_single = st.text_input('取得年')
+        ID_single = st.text_input('▼観測所のコード：例）荒瀬 309061289901060')
+        start_year_single = st.text_input('▼取得年')
         end_year_single = start_year_single
         submit_btn_single = st.button('結果表示')
         if submit_btn_single:
@@ -251,10 +251,10 @@ def main():
 
 
     elif data_type == "水位" and year_type == "複数年":
-        ID_multi = st.text_input('観測所のコード：例）荒瀬 309061289901060')
+        ID_multi = st.text_input('▼観測所のコード：例）荒瀬 309061289901060')
         start_year_multi = st.text_input('開始年')
         end_year_multi = st.text_input('終了年')
-        submit_btn_multi = st.button('取得開始')
+        submit_btn_multi = st.button('▼取得開始')
         if submit_btn_multi:
             extractor_multi = RainDataExtractor(ID_multi, start_year_multi, end_year_multi)
             text_placeholder = st.text('csvデータを作成中です...')
@@ -271,8 +271,8 @@ def main():
 
 
     elif data_type == "流量" and year_type == "単年":
-        ID_single = st.text_input('観測所のコード：例）日の出橋 309011289902050')
-        start_year_single = st.text_input('取得年')
+        ID_single = st.text_input('▼観測所のコード：例）日の出橋 309011289902050')
+        start_year_single = st.text_input('▼取得年')
         end_year_single = start_year_single
         submit_btn_single = st.button('結果表示')
         if submit_btn_single:
@@ -283,10 +283,10 @@ def main():
 
 
     elif data_type == "流量" and year_type == "複数年":
-        ID_multi = st.text_input('観測所のコード：例）日の出橋 309011289902050')
+        ID_multi = st.text_input('▼観測所のコード：例）日の出橋 309011289902050')
         start_year_multi = st.text_input('開始年')
         end_year_multi = st.text_input('終了年')
-        submit_btn_multi = st.button('取得開始')
+        submit_btn_multi = st.button('▼取得開始')
         if submit_btn_multi:
             extractor_multi = RainDataExtractor(ID_multi, start_year_multi, end_year_multi)
             text_placeholder = st.text('csvデータを作成中です...')
