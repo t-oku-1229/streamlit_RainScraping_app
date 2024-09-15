@@ -214,8 +214,8 @@ def main():
         submit_btn_single = st.button('結果表示')
         if submit_btn_single:
             extractor_single = RainDataExtractor(ID_single, start_year_single, end_year_single)
-            # df_single = extractor_single.rainsingleyear()
-            df_single = extractor_single.dischargesingleyear()
+            df_single = extractor_single.rainsingleyear()
+            # df_single = extractor_single.dischargesingleyear()
             st.dataframe(df_single)
 
 
